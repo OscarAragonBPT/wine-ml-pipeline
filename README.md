@@ -1,76 +1,73 @@
-# 🍷 Wine Quality ML Pipeline
 
-Pipeline de Machine Learning completamente automatizado con **GitHub Actions** y **MLflow**.
-Clasifica vinos tintos como *buena calidad* o *baja calidad* a partir de sus
-características fisicoquímicas, aplicando prácticas modernas de MLOps.
+Desde ahí se pueden ver todos los runs, parámetros, métricas y el modelo registrado.
 
----
+### 7. Limpiar artefactos generados
 
-## 🎯 Problema que se resuelve
-
-La industria vitivinícola necesita formas objetivas y reproducibles de evaluar la calidad
-de sus vinos. Tradicionalmente, esta evaluación depende de catadores expertos, lo que la
-hace subjetiva, costosa y difícil de escalar.
-
-Este proyecto propone un modelo de machine learning que predice si un vino tinto es de
-**buena calidad** o **baja calidad** basándose exclusivamente en sus propiedades
-fisicoquímicas medibles en laboratorio, como la acidez, el pH, el contenido de alcohol
-y otros indicadores. El objetivo es construir un sistema reproducible, trazable y
-automatizado que pueda ser auditado en cualquier momento.
+```bash
+make clean
+```
 
 ---
 
-## 🗂️ Dataset
+## 🤖 Pipeline de CI/CD con GitHub Actions
 
-**Wine Quality (Red) — UCI Machine Learning Repository**
+El archivo `.github/workflows/ml.yml` automatiza el pipeline completo en GitHub.
+Se activa automáticamente en cada `push` o `pull_request` a la rama `main`,
+y también puede ejecutarse de forma manual desde la pestaña **Actions**.
 
-| Atributo     | Detalle                                                                 |
-|--------------|-------------------------------------------------------------------------|
-| Nombre       | Wine Quality (Red)                                                      |
-| Fuente       | UCI Machine Learning Repository                                         |
-| Registros    | 1,599 muestras de vino tinto                                            |
-| Features     | 11 variables fisicoquímicas continuas                                   |
-| Variable objetivo | Calidad del vino (score del 3 al 8)                               |
-| Formato      | CSV separado por punto y coma (`;`)                                     |
-| Licencia     | Pública y libre de uso                                                  |
-| URL          | https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/ |
+### Pasos del workflow
 
-### Variables del dataset
+| Paso | Acción                      | Descripción                                          |
+|------|-----------------------------|------------------------------------------------------|
+| 1    | `actions/checkout@v4`       | Clona el repositorio en el runner de GitHub          |
+| 2    | `actions/setup-python@v5`   | Configura Python 3.10 con caché de pip               |
+| 3    | `make install`              | Instala todas las dependencias                       |
+| 4    | `make train`                | Entrena y registra el modelo en MLflow               |
+| 5    | `make test`                 | Valida métricas contra los umbrales mínimos          |
+| 6    | `actions/upload-artifact@v4`| Sube `mlruns/` y `model.pkl` como artefacto del run  |
 
-| Variable                  | Descripción                                              |
-|---------------------------|----------------------------------------------------------|
-| `fixed acidity`           | Acidez fija del vino                                     |
-| `volatile acidity`        | Acidez volátil (vinagre) — valores altos reducen calidad |
-| `citric acid`             | Ácido cítrico — aporta frescura al vino                  |
-| `residual sugar`          | Azúcar residual tras la fermentación                     |
-| `chlorides`               | Contenido de sal                                         |
-| `free sulfur dioxide`     | SO₂ libre — previene oxidación y crecimiento microbiano  |
-| `total sulfur dioxide`    | SO₂ total (libre + ligado)                               |
-| `density`                 | Densidad del vino                                        |
-| `pH`                      | Nivel de acidez general                                  |
-| `sulphates`               | Sulfatos — contribuyen al aroma y conservación           |
-| `alcohol`                 | Porcentaje de alcohol por volumen                        |
-| `quality`                 | Puntuación sensorial del vino (3 a 8) — variable original|
+### Cómo ver el workflow corriendo
 
-### Transformación del target
-
-La variable `quality` original es un score numérico. Para este proyecto se transforma
-en una **clasificación binaria**:
-
-- `quality >= 7` → **1** (buena calidad)
-- `quality < 7`  → **0** (baja calidad)
-
-Esto permite usar métricas de clasificación claras como Accuracy y F1-Score, y construir
-un modelo más interpretable para el negocio.
-
-### ¿Por qué este dataset?
-
-- Es una fuente externa reconocida y ampliamente usada en investigación
-- No proviene de `sklearn.datasets`
-- Tiene datos reales de laboratorio, no sintéticos
-- Permite construir un problema de negocio concreto y explicable
-- Es suficientemente pequeño para entrenar rápido y suficientemente rico para demostrar preprocesamiento
+1. Haz push a la rama `main`
+2. Ve a tu repositorio en GitHub
+3. Entra a la pestaña **Actions**
+4. Abre el workflow `ML Pipeline — Wine Quality CI/CD`
+5. Verifica que todos los pasos estén en verde ✅
+6. Al final, descarga el artefacto `wine-ml-artifacts-N` que contiene el modelo
 
 ---
 
-## 🏗️ Arquitectura del proyecto
+## 📋 Comandos del Makefile
+
+| Comando        | Descripción                                              |
+|----------------|----------------------------------------------------------|
+| `make install` | Instala dependencias desde `requirements.txt`            |
+| `make train`   | Ejecuta el pipeline completo de entrenamiento            |
+| `make test`    | Ejecuta pruebas de validación del modelo                 |
+| `make lint`    | Verifica calidad del código con flake8                   |
+| `make all`     | Ejecuta install → train → test en secuencia              |
+| `make clean`   | Elimina `mlruns/` y `model.pkl` generados localmente     |
+
+---
+
+## ✅ Checklist del proyecto
+
+- [x] Dataset externo, no de `sklearn.datasets`
+- [x] Preprocesamiento: manejo de nulos, target binario, escalamiento, split
+- [x] Modelo entrenado con LightGBM
+- [x] Dos métricas evaluadas: Accuracy y F1-Score
+- [x] MLflow registra parámetros, métricas, firma, input example y modelo
+- [x] `src/train.py` funciona desde consola
+- [x] `make install`, `make train`, `make test` funcionan
+- [x] Pipeline CI/CD activo en GitHub Actions
+- [x] Artefactos subidos al workflow
+- [x] README con instrucciones claras
+
+---
+
+## 👤 Autor
+Oscar Mauricio Aragón Morales
+
+**Oscar Mauricio Aragón**  
+Maestría en Inteligencia Artificial — MLOps  
+Universidad EAN · 2026
