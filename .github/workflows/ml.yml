@@ -1,0 +1,44 @@
+name: ML Pipeline — Wine Quality CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ml_pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Instalar dependencias
+        run: make install
+
+      - name: Lint
+        run: make lint
+
+      - name: Entrenar
+        run: make train
+
+      - name: Test
+        run: make test
+
+      - name: Subir artefactos
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wine-ml-artifacts-${{ github.run_number }}
+          path: |
+            mlruns/
+            model.pkl
+          retention-days: 30
